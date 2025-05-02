@@ -185,18 +185,14 @@
       hideError();
       
       try {
-        // Usando a biblioteca SmashUploader conforme a documentação
+        // Usando a biblioteca SmashUploader
         const su = new SmashUploader({ 
           region: REGION, 
           token: API_KEY 
         });
         
-        // Configurar o evento de progresso - CORRIGIDO
+        // Configurar o evento de progresso
         su.on('progress', (event) => {
-          // Verificar a estrutura do evento e extrair o percentual de progresso
-          console.log('Progress event:', event); // Para debug
-          
-          // Extrair o percentual de progresso com verificação de segurança
           let percent = 0;
           if (event && event.progress && typeof event.progress.percent === 'number') {
             percent = event.progress.percent;
@@ -208,18 +204,22 @@
         });
         
         // Iniciar o upload
-        const transfer = await su.upload({ files: [currentFile] });
+        const result = await su.upload({ files: [currentFile] });
         
-        // Processar a resposta bem-sucedida
-        console.log("Transfer", transfer);
-        fileDownloadUrl = transfer.downloadUrl;
+        // Obter a URL de transferência
+        if (result && result.transfer && result.transfer.transferUrl) {
+          fileDownloadUrl = result.transfer.transferUrl;
+        } else {
+          showError("URL de transferência não encontrada na resposta da API.");
+          return;
+        }
         
         // Mostrar botão de download
         uploadButton.classList.add('hidden');
         downloadButton.classList.remove('hidden');
       } catch (err) {
         showError("Ocorreu um erro durante o upload. Tente novamente.");
-        console.error("Error", err);
+        console.error("Erro:", err);
       } finally {
         uploadButton.disabled = false;
       }
@@ -227,13 +227,17 @@
     
     function updateProgress(value) {
       progressFill.style.width = `${value}%`;
-      progressText.textContent = `${value}%`;
+      progressText.textContent = `${Math.round(value)}%`;
     }
     
     function handleDownload() {
-      if (fileDownloadUrl) {
-        window.open(fileDownloadUrl, '_blank');
+      if (!fileDownloadUrl) {
+        showError("URL de download não disponível.");
+        return;
       }
+      
+      // Abrir a URL em uma nova aba
+      window.open(fileDownloadUrl, '_blank');
     }
     
     function clearFile() {
@@ -242,6 +246,7 @@
       fileInput.value = "";
       hideError();
       updateProgress(0);
+      progressContainer.classList.add('hidden');
       
       fileArea.classList.add('hidden');
       uploadArea.classList.remove('hidden');
