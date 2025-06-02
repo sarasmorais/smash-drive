@@ -86,5 +86,5 @@ Veja mais detalhes no arquivo [LICENSE](./LICENSE).
 
 ---
 
-Feito por Sara Morais
-Orientado por Luan Oliveira
+- Feito por Sara Morais
+- Orientado por Luan Oliveira
